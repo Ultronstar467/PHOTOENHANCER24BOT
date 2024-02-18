@@ -9,6 +9,7 @@ from sh_bots.font_list import Fonts
 from pyrogram.types import *
 from telegraph import upload_file
 from pyrogram.enums import ChatAction
+from pyrogram.errors import UserNotParticipant, UserBannedInChannel 
 
 #ALL FILES UPLOADED - CREDITS 🌟 - @Sunrises_24
 
@@ -20,6 +21,10 @@ RemoveBG_API = os.environ.get("RemoveBG_API")
 
 API = "https://apis.xditya.me/lyrics?song="
 
+START_TEXT = """
+Hello {message.from_user.first_name}❤️ Welcome! Send me an image and choose an action
+"""
+
 # Initialize the Pyrogram client
 app = Client(
     "image_editor_bot",
@@ -28,20 +33,42 @@ app = Client(
     bot_token=BOT_TOKEN
 )
 
-# Function to handle /start command
+# Function to handle /start command   
 @app.on_message(filters.command("start"))
 async def start(client, message):
-    await message.reply_text(
-        f"Hello {message.from_user.first_name}❤️ Welcome! Send me an image and choose an action",reply_to_message_id = message.id ,  reply_markup=InlineKeyboardMarkup(
+# fork and edit force channel
+    FSUB_CHANNEL = "Sunrises24BotUpdates"
+    if FSUB_CHANNEL:
+        try:
+            user = await bot.get_chat_member(FSUB_CHANNEL, update.chat.id)
+            if user.status == "kicked":
+               await update.reply_text(" Sorry, You are **B A N N E D**")
+               return
+        except UserNotParticipant:
+            #await update.reply_text(f"Join @{FSUB_CHANNEL} To Use Me")
+            await update.reply_text(
+                text="**❤️ Please Join My Update Channel Before Using Me ❤️**",
+                reply_markup=InlineKeyboardMarkup([
+                    [ InlineKeyboardButton(text="↗️ Join My Updates Channel ↗️", url=f"https://t.me/{FSUB_CHANNEL}")]
+              ])
+            )
+            return
+        else:
+            await update.reply_text(START_TEXT.format(update.from_user.first_name),
+        reply_markup=InlineKeyboardMarkup(
             [
                 [
                     InlineKeyboardButton("𝐔𝐏𝐃𝐀𝐓𝐄𝐒 📢" ,url=f"https://t.me/Sunrises24BotUpdates") ],
                     [
                     InlineKeyboardButton("𝐃𝐄𝐕𝐄𝐋𝐎𝐏𝐄𝐑 🧑🏻‍💻" ,url="https://t.me/Sunrises_24") ],
                     [
-                    InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍𝐄𝐋 🎞️" ,url="https://t.me/sunriseseditsoffical6") ]                               
-            ]))
-   
+                    InlineKeyboardButton("𝐂𝐇𝐀𝐍𝐍𝐄𝐋 🎞️" ,url="https://t.me/sunriseseditsoffical6") ]
+            ]
+        ),
+        reply_to_message_id=update.message_id
+    )
+            return 
+            
 print("Bot Started!🦋 © t.me/Sunrises_24")
 
 # Function to handle /help command
